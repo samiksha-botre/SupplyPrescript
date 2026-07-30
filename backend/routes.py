@@ -51,3 +51,23 @@ def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Medicine deleted successfully"}
+
+@router.put("/medicines/{medicine_id}")
+def update_medicine(
+    medicine_id: int,
+    medicine: MedicineCreate,
+    db: Session = Depends(get_db)
+):
+    existing_medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
+
+    if existing_medicine is None:
+        return {"message": "Medicine not found"}
+
+    existing_medicine.name = medicine.name
+    existing_medicine.company = medicine.company
+    existing_medicine.price = medicine.price
+
+    db.commit()
+    db.refresh(existing_medicine)
+
+    return existing_medicine
