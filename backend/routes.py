@@ -1,6 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from fastapi import Depends
 from pydantic import BaseModel
 
 from .database import SessionLocal
@@ -45,7 +44,9 @@ def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
     medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
 
     if medicine is None:
-        return {"message": "Medicine not found"}
+        raise HTTPException(
+            status_code=404,
+            detail="Medicine not found")
 
     db.delete(medicine)
     db.commit()
@@ -61,7 +62,7 @@ def update_medicine(
     existing_medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
 
     if existing_medicine is None:
-        return {"message": "Medicine not found"}
+        raise HTTPException(status_code=404, detail="Medicine not found")
 
     existing_medicine.name = medicine.name
     existing_medicine.company = medicine.company
