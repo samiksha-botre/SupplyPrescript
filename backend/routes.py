@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
-from pydantic import BaseModel
+from pydantic import BaseModel, Field 
 
 from .database import SessionLocal
 from .models import Medicine
@@ -38,9 +38,9 @@ def get_medicines(
     return medicines
 
 class MedicineCreate(BaseModel):
-    name: str
-    company: str
-    price: str
+    name: str = Field(..., min_length=2, max_length=100)
+    company: str = Field(..., min_length=2, max_length=100)
+    price: str = Field(..., min_length=1)
 
 
 @router.post("/medicines")
