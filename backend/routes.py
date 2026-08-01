@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import asc, desc
 from pydantic import BaseModel
 
 from .database import SessionLocal
@@ -15,8 +16,25 @@ def get_db():
         db.close()
 
 @router.get("/medicines")
-def get_medicines(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    medicines = db.query(Medicine).offset(skip).limit(limit).all()
+def get_medicines(
+    skip: int = 0,
+    limit: int = 10,
+    sort_by: str = "id",
+    order: str = "asc",
+    db: Session = Depends(get_db)
+):
+    query = db.query(Medicine)
+
+    if sort_by == "name":
+        query = query.order_by(asc(Medicine.name) if order == "asc" else desc(Medicine.name))
+    elif sort_by == "company":
+        query = query.order_by(asc(Medicine.company) if order == "asc" else desc(Medicine.company))
+    elif sort_by == "price":
+        query = query.order_by(asc(Medicine.price) if order == "asc" else desc(Medicine.price))
+    else:
+        query = query.order_by(asc(Medicine.id) if order == "asc" else desc(Medicine.id))
+
+    medicines = query.offset(skip).limit(limit).all()
     return medicines
 
 class MedicineCreate(BaseModel):
