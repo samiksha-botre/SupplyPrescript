@@ -72,3 +72,18 @@ def update_medicine(
     db.refresh(existing_medicine)
 
     return existing_medicine
+
+@router.get("/medicines/{medicine_id}")
+def get_medicine_by_id(
+    medicine_id: int,
+    db: Session = Depends(get_db)
+):
+    medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
+
+    if medicine is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Medicine not found"
+        )
+
+    return medicine
