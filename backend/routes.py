@@ -15,8 +15,8 @@ def get_db():
         db.close()
 
 @router.get("/medicines")
-def get_medicines(db: Session = Depends(get_db)):
-    medicines = db.query(Medicine).all()
+def get_medicines(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    medicines = db.query(Medicine).offset(skip).limit(limit).all()
     return medicines
 
 class MedicineCreate(BaseModel):
