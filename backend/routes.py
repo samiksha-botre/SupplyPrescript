@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import asc, desc, cast, Integer
+from sqlalchemy import asc, desc, cast, Integer, func
 from pydantic import BaseModel, Field 
 
 from .database import SessionLocal
@@ -143,6 +143,17 @@ def get_medicines_by_price(
 
     return medicines
 
+@router.get("/medicines/count")
+def get_medicine_count(
+    db: Session = Depends(get_db)
+):
+    total = db.query(func.count(Medicine.id)).scalar()
+
+    return {
+        "total_medicines": total
+    }
+
+
 @router.get("/medicines/{medicine_id}")
 def get_medicine_by_id(
     medicine_id: int,
@@ -157,5 +168,4 @@ def get_medicine_by_id(
         )
 
     return medicine
-
 
