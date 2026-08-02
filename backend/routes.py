@@ -97,12 +97,12 @@ def search_medicine(
     name: str,
     db: Session = Depends(get_db)
 ):
-    medicine = db.query(Medicine).filter(Medicine.name == name).first()
+    medicine = db.query(Medicine).filter(Medicine.name.ilike("%{name}%")).all()
 
-    if medicine is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Medicine not found"
+    if not medicine:
+       raise HTTPException(
+          status_code=404,
+          detail="Medicine not found"
         )
 
     return medicine
