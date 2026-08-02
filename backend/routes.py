@@ -106,6 +106,23 @@ def search_medicine(
 
     return medicine
 
+@router.get("/medicines/company/{company_name}")
+def get_medicines_by_company(
+    company_name: str,
+    db: Session = Depends(get_db)
+):
+    medicines = db.query(Medicine).filter(
+        Medicine.company == company_name
+    ).all()
+
+    if not medicines:
+        raise HTTPException(
+            status_code=404,
+            detail="No medicines found for this company"
+        )
+
+    return medicines
+
 @router.get("/medicines/{medicine_id}")
 def get_medicine_by_id(
     medicine_id: int,
@@ -120,4 +137,5 @@ def get_medicine_by_id(
         )
 
     return medicine
+
 
