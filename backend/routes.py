@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, cast, Integer
 from pydantic import BaseModel, Field 
 
 from .database import SessionLocal
@@ -71,6 +71,7 @@ def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
 
     return {"message": "Medicine deleted successfully"}
 
+
 @router.put("/medicines/{medicine_id}")
 def update_medicine(
     medicine_id: int,
@@ -119,6 +120,25 @@ def get_medicines_by_company(
         raise HTTPException(
             status_code=404,
             detail="No medicines found for this company"
+        )
+
+    return medicines
+
+@router.get("/medicines/price")
+def get_medicines_by_price(
+    min_price: int,
+    max_price: int,
+    db: Session = Depends(get_db)
+):
+    medicines = db.query(Medicine).filter(
+        cast(Medicine.price, Integer) >= min_price,
+        cast(Medicine.price, Integer) <= max_price
+    ).all()
+
+    if not medicines:
+        raise HTTPException(
+            status_code=404,
+            detail="No medicines found in this price range"
         )
 
     return medicines
