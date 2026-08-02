@@ -15,7 +15,22 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/medicines")
+
+class MedicineCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100)
+    company: str = Field(..., min_length=2, max_length=100)
+    price: str = Field(..., min_length=1)
+
+class MedicineResponse(BaseModel):
+    id: int
+    name: str
+    company: str
+    price: str
+
+    class Config:
+        from_attributes = True
+
+@router.get("/medicines", response_model=list[MedicineResponse])
 def get_medicines(
     skip: int = 0,
     limit: int = 10,
@@ -37,13 +52,10 @@ def get_medicines(
     medicines = query.offset(skip).limit(limit).all()
     return medicines
 
-class MedicineCreate(BaseModel):
-    name: str = Field(..., min_length=2, max_length=100)
-    company: str = Field(..., min_length=2, max_length=100)
-    price: str = Field(..., min_length=1)
 
 
-@router.post("/medicines")
+
+@router.post("/medicines", response_model=MedicineResponse)
 def create_medicine(medicine: MedicineCreate, db: Session = Depends(get_db)):
     new_medicine = Medicine(
         name=medicine.name,
@@ -72,7 +84,7 @@ def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
     return {"message": "Medicine deleted successfully"}
 
 
-@router.put("/medicines/{medicine_id}")
+@router.put("/medicines/{medicine_id}", response_model=MedicineResponse)
 def update_medicine(
     medicine_id: int,
     medicine: MedicineCreate,
@@ -97,7 +109,7 @@ def search_medicine(
     name: str,
     db: Session = Depends(get_db)
 ):
-    medicine = db.query(Medicine).filter(Medicine.name.ilike("%{name}%")).all()
+    medicine = db.query(Medicine).filter(Medicine.name.ilike(f"%{name}%")).all()
 
     if not medicine:
        raise HTTPException(
@@ -154,7 +166,7 @@ def get_medicine_count(
     }
 
 
-@router.get("/medicines/{medicine_id}")
+@router.get("/medicines/{medicine_id}", response_model=MedicineResponse)
 def get_medicine_by_id(
     medicine_id: int,
     db: Session = Depends(get_db)
