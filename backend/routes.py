@@ -71,6 +71,16 @@ def get_medicines(
 
 @router.post("/medicines", response_model=ApiResponse)
 def create_medicine(medicine: MedicineCreate, db: Session = Depends(get_db)):
+
+    existing_medicine = db.query(Medicine).filter(
+    Medicine.name.ilike(medicine.name)
+).first()
+
+    if existing_medicine:
+       raise HTTPException(
+        status_code=400,
+        detail="Medicine already exists"
+    )
     new_medicine = Medicine(
         name=medicine.name,
         company=medicine.company,
