@@ -107,7 +107,7 @@ def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
     return {"message": "Medicine deleted successfully"}
 
 
-@router.put("/medicines/{medicine_id}", response_model=MedicineResponse)
+@router.put("/medicines/{medicine_id}", response_model=ApiResponse)
 def update_medicine(
     medicine_id: int,
     medicine: MedicineCreate,
@@ -125,7 +125,16 @@ def update_medicine(
     db.commit()
     db.refresh(existing_medicine)
 
-    return existing_medicine
+    return {
+        "success": True,
+        "message": "Medicine updated successfully",
+        "data": {
+           "id": existing_medicine.id,
+           "name": existing_medicine.name,
+           "company": existing_medicine.company,
+           "price": existing_medicine.price
+    }
+}
 
 @router.get("/medicines/search")
 def search_medicine(
