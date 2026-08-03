@@ -30,12 +30,17 @@ class MedicineResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class MedicinesListResponse(BaseModel):
+    success: bool
+    message: str
+    data: list[MedicineResponse]        
+
 class ApiResponse(BaseModel):
     success: bool
     message: str
     data: dict | list | None = None        
 
-@router.get("/medicines", response_model=list[MedicineResponse])
+@router.get("/medicines", response_model=MedicinesListResponse)
 def get_medicines(
     skip: int = 0,
     limit: int = 10,
@@ -55,7 +60,11 @@ def get_medicines(
         query = query.order_by(asc(Medicine.id) if order == "asc" else desc(Medicine.id))
 
     medicines = query.offset(skip).limit(limit).all()
-    return medicines
+    return {
+        "success": True,
+        "message": "Medicines fetched successfully",
+        "data": medicines
+}
 
 
 
