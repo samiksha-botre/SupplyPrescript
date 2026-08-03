@@ -170,7 +170,11 @@ def get_medicines_by_company(
             detail="No medicines found for this company"
         )
 
-    return medicines
+    return {
+        "success": True,
+        "message": "Medicines fetched successfully",
+        "data": medicines
+}
 
 @router.get("/medicines/price")
 def get_medicines_by_price(
