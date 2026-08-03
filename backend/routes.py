@@ -193,7 +193,11 @@ def get_medicines_by_price(
             detail="No medicines found in this price range"
         )
 
-    return medicines
+    return {
+        "success": True,
+        "message": "Medicines fetched successfully",
+        "data": medicines
+}
 
 @router.get("/medicines/count")
 def get_medicine_count(
