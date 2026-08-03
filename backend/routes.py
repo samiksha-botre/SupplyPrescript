@@ -149,7 +149,11 @@ def search_medicine(
           detail="Medicine not found"
         )
 
-    return medicine
+    return {
+        "success": True,
+        "message": "Medicines found successfully",
+        "data": medicine
+}
 
 @router.get("/medicines/company/{company_name}")
 def get_medicines_by_company(
