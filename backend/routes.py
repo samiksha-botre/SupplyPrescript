@@ -30,6 +30,11 @@ class MedicineResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class ApiResponse(BaseModel):
+    success: bool
+    message: str
+    data: dict | list | None = None        
+
 @router.get("/medicines", response_model=list[MedicineResponse])
 def get_medicines(
     skip: int = 0,
@@ -55,7 +60,7 @@ def get_medicines(
 
 
 
-@router.post("/medicines", response_model=MedicineResponse)
+@router.post("/medicines", response_model=ApiResponse)
 def create_medicine(medicine: MedicineCreate, db: Session = Depends(get_db)):
     new_medicine = Medicine(
         name=medicine.name,
@@ -67,7 +72,16 @@ def create_medicine(medicine: MedicineCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_medicine)
 
-    return new_medicine
+    return {
+    "success": True,
+    "message": "Medicine created successfully",
+    "data": {
+        "id": new_medicine.id,
+        "name": new_medicine.name,
+        "company": new_medicine.company,
+        "price": new_medicine.price
+    }
+}
 
 @router.delete("/medicines/{medicine_id}")
 def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
