@@ -206,7 +206,11 @@ def get_medicine_count(
     total = db.query(func.count(Medicine.id)).scalar()
 
     return {
-        "total_medicines": total
+        "success": True,
+        "message": "Medicine count fetched successfully",
+        "data":{
+            "total_medicines": total
+        }    
     }
 
 
