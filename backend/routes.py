@@ -102,7 +102,7 @@ def create_medicine(medicine: MedicineCreate, db: Session = Depends(get_db)):
     }
 }
 
-@router.delete("/medicines/{medicine_id}")
+@router.delete("/medicines/{medicine_id}", response_model=ApiResponse)
 def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
     medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
 
@@ -114,7 +114,11 @@ def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
     db.delete(medicine)
     db.commit()
 
-    return {"message": "Medicine deleted successfully"}
+    return {
+        "success": True,
+        "message": "Medicine deleted successfully",
+        "data": None
+}
 
 
 @router.put("/medicines/{medicine_id}", response_model=ApiResponse)
