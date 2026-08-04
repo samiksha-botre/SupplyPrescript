@@ -4,7 +4,7 @@ from sqlalchemy import asc, desc, cast, Integer, func
 from pydantic import BaseModel, Field 
 
 from .database import SessionLocal
-from .models import Medicine
+from .models import Medicine, User
 
 router = APIRouter()
 
@@ -20,6 +20,19 @@ class MedicineCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     company: str = Field(..., min_length=2, max_length=100)
     price: str = Field(..., min_length=1)
+
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=100)
+    email: str = Field(..., min_length=5, max_length=100)
+    password: str = Field(..., min_length=6, max_length=255)
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True        
 
 class MedicineResponse(BaseModel):
     id: int
@@ -150,7 +163,7 @@ def update_medicine(
     }
 }
 
-@router.get("/medicines/search")
+@router.get("/medicines/search", response_model=MedicinesListResponse)
 def search_medicine(
     name: str,
     db: Session = Depends(get_db)
@@ -169,7 +182,7 @@ def search_medicine(
         "data": medicine
 }
 
-@router.get("/medicines/company/{company_name}")
+@router.get("/medicines/company/{company_name}", response_model=MedicinesListResponse)
 def get_medicines_by_company(
     company_name: str,
     db: Session = Depends(get_db)
@@ -190,7 +203,7 @@ def get_medicines_by_company(
         "data": medicines
 }
 
-@router.get("/medicines/price")
+@router.get("/medicines/price", response_model=MedicinesListResponse)
 def get_medicines_by_price(
     min_price: int,
     max_price: int,
@@ -213,7 +226,7 @@ def get_medicines_by_price(
         "data": medicines
 }
 
-@router.get("/medicines/count")
+@router.get("/medicines/count", response_model=MedicinesListResponse)
 def get_medicine_count(
     db: Session = Depends(get_db)
 ):
@@ -243,3 +256,38 @@ def get_medicine_by_id(
 
     return medicine
 
+@router.post("/register", response_model=ApiResponse)
+def register_user(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+    existing_user = db.query(User).filter(
+        (User.username == user.username) |
+        (User.email == user.email)
+    ).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Username or email already exists"
+        )
+
+    new_user = User(
+        username=user.username,
+        email=user.email,
+        password=user.password
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "success": True,
+        "message": "User registered successfully",
+        "data": {
+            "id": new_user.id,
+            "username": new_user.username,
+            "email": new_user.email
+        }
+    }
