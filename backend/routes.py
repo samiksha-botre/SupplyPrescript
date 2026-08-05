@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc, cast, Integer, func
 from pydantic import BaseModel, Field
-from .security import hash_password 
+from .security import hash_password, verify_password 
 
 from .database import SessionLocal
 from .models import Medicine, User
@@ -26,6 +26,10 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
     email: str = Field(..., min_length=5, max_length=100)
     password: str = Field(..., min_length=6, max_length=255)
+
+class UserLogin(BaseModel):
+    email: str
+    password: str    
 
 class UserResponse(BaseModel):
     id: int
@@ -290,5 +294,36 @@ def register_user(
             "id": new_user.id,
             "username": new_user.username,
             "email": new_user.email
+        }
+    }
+
+@router.post("/login", response_model=ApiResponse)
+def login_user(
+    user: UserLogin,
+    db: Session = Depends(get_db)
+):
+    existing_user = db.query(User).filter(
+        User.email == user.email
+    ).first()
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    if not verify_password(user.password, existing_user.password):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    return {
+        "success": True,
+        "message": "Login successful",
+        "data": {
+            "id": existing_user.id,
+            "username": existing_user.username,
+            "email": existing_user.email
         }
     }
