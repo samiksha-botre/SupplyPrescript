@@ -27,6 +27,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
     email: str = Field(..., min_length=5, max_length=100)
     password: str = Field(..., min_length=6, max_length=255)
+    role: str = "user"
 
 class UserLogin(BaseModel):
     email: str
@@ -123,7 +124,7 @@ def create_medicine(medicine: MedicineCreate, admin=Depends(verify_admin), db: S
 }
 
 @router.delete("/medicines/{medicine_id}", response_model=ApiResponse)
-def delete_medicine(medicine_id: int, admin=Depends(verify_admin), db: Session = Depends(get_db)):
+def delete_medicine(medicine_id: int, current_user=Depends(verify_admin), db: Session = Depends(get_db)):
     medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
 
     if medicine is None:
@@ -144,7 +145,7 @@ def delete_medicine(medicine_id: int, admin=Depends(verify_admin), db: Session =
 @router.put("/medicines/{medicine_id}", response_model=ApiResponse)
 def update_medicine(
     medicine_id: int,
-    medicine: MedicineCreate, admin=Depends(verify_admin),
+    medicine: MedicineCreate, current_user=Depends(verify_admin),
     db: Session = Depends(get_db)
 ):
     existing_medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
@@ -280,10 +281,11 @@ def register_user(
         )
 
     new_user = User(
-        username=user.username,
-        email=user.email,
-        password=hash_password(user.password)
-    )
+    username=user.username,
+    email=user.email,
+    password=hash_password(user.password),
+    role=user.role
+)
 
     db.add(new_user)
     db.commit()
