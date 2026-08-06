@@ -344,3 +344,31 @@ def login_user(
             }
         }
     }
+
+@router.get("/dashboard/stats", response_model=ApiResponse)
+def dashboard_stats(
+    current_user=Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    total_users = db.query(func.count(User.id)).scalar()
+
+    total_admins = db.query(func.count(User.id)).filter(
+        User.role == "admin"
+    ).scalar()
+
+    total_normal_users = db.query(func.count(User.id)).filter(
+        User.role == "user"
+    ).scalar()
+
+    total_medicines = db.query(func.count(Medicine.id)).scalar()
+
+    return {
+        "success": True,
+        "message": "Dashboard statistics fetched successfully",
+        "data": {
+            "total_users": total_users,
+            "total_admins": total_admins,
+            "total_normal_users": total_normal_users,
+            "total_medicines": total_medicines
+        }
+    }
