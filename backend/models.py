@@ -8,6 +8,7 @@ class Medicine(Base):
     name = Column(String(100))
     company = Column(String(100))
     price = Column(String(20))
+    quantity = Column(Integer, default=0)
 
 class User(Base):
     __tablename__ = "users"

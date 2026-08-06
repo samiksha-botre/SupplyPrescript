@@ -22,6 +22,7 @@ class MedicineCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     company: str = Field(..., min_length=2, max_length=100)
     price: str = Field(..., min_length=1)
+    quantity: int
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
@@ -46,6 +47,7 @@ class MedicineResponse(BaseModel):
     name: str
     company: str
     price: str
+    quantity: int
 
     class Config:
         from_attributes = True
@@ -105,7 +107,8 @@ def create_medicine(medicine: MedicineCreate, admin=Depends(verify_admin), db: S
     new_medicine = Medicine(
         name=medicine.name,
         company=medicine.company,
-        price=medicine.price
+        price=medicine.price,
+        quantity=medicine.quantity
     )
 
     db.add(new_medicine)
@@ -119,7 +122,8 @@ def create_medicine(medicine: MedicineCreate, admin=Depends(verify_admin), db: S
         "id": new_medicine.id,
         "name": new_medicine.name,
         "company": new_medicine.company,
-        "price": new_medicine.price
+        "price": new_medicine.price,
+        "quantity": new_medicine.quantity
     }
 }
 
@@ -156,6 +160,7 @@ def update_medicine(
     existing_medicine.name = medicine.name
     existing_medicine.company = medicine.company
     existing_medicine.price = medicine.price
+    existing_medicine.quantity=medicine.quantity
 
     db.commit()
     db.refresh(existing_medicine)
@@ -167,7 +172,8 @@ def update_medicine(
            "id": existing_medicine.id,
            "name": existing_medicine.name,
            "company": existing_medicine.company,
-           "price": existing_medicine.price
+           "price": existing_medicine.price,
+           "quantity": existing_medicine.quantity
     }
 }
 
