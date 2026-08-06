@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc, cast, Integer, func
 from pydantic import BaseModel, Field
 from .security import hash_password, verify_password 
-from .auth import create_access_token
+from .auth import create_access_token, verify_token
 
 from .database import SessionLocal
 from .models import Medicine, User
@@ -65,6 +65,7 @@ def get_medicines(
     limit: int = 10,
     sort_by: str = "id",
     order: str = "asc",
+    current_user: str = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     query = db.query(Medicine)
