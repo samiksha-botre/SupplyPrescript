@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc, cast, Integer, func
 from pydantic import BaseModel, Field
 from .security import hash_password, verify_password 
+from .auth import create_access_token
 
 from .database import SessionLocal
 from .models import Medicine, User
@@ -318,12 +319,21 @@ def login_user(
             detail="Invalid email or password"
         )
 
+
+    token = create_access_token(
+        data={"sub": existing_user.email}
+    )
+
     return {
         "success": True,
         "message": "Login successful",
         "data": {
-            "id": existing_user.id,
-            "username": existing_user.username,
-            "email": existing_user.email
+           "access_token": token,
+           "token_type": "bearer",
+           "user": {
+               "id": existing_user.id,
+               "username": existing_user.username,
+               "email": existing_user.email
+            }
         }
     }
