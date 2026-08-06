@@ -46,10 +46,21 @@ def verify_token(
                 detail="Invalid token"
             )
 
-        return email
+        return payload
 
     except JWTError:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired token"
+            )
+
+def verify_admin(user=Depends(verify_token)):
+    if user.get("role") != "admin":
         raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token"
+            status_code=403,
+            detail="Admin access required"
         )
+
+    return user
+
+    

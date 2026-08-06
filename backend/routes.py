@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc, cast, Integer, func
 from pydantic import BaseModel, Field
 from .security import hash_password, verify_password 
-from .auth import create_access_token, verify_token
+from .auth import create_access_token, verify_token, verify_admin
 
 from .database import SessionLocal
 from .models import Medicine, User
@@ -90,7 +90,7 @@ def get_medicines(
 
 
 @router.post("/medicines", response_model=ApiResponse)
-def create_medicine(medicine: MedicineCreate, db: Session = Depends(get_db)):
+def create_medicine(medicine: MedicineCreate, admin=Depends(verify_admin), db: Session = Depends(get_db)):
 
     existing_medicine = db.query(Medicine).filter(
     Medicine.name.ilike(medicine.name)
@@ -123,7 +123,7 @@ def create_medicine(medicine: MedicineCreate, db: Session = Depends(get_db)):
 }
 
 @router.delete("/medicines/{medicine_id}", response_model=ApiResponse)
-def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
+def delete_medicine(medicine_id: int, admin=Depends(verify_admin), db: Session = Depends(get_db)):
     medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
 
     if medicine is None:
@@ -144,7 +144,7 @@ def delete_medicine(medicine_id: int, db: Session = Depends(get_db)):
 @router.put("/medicines/{medicine_id}", response_model=ApiResponse)
 def update_medicine(
     medicine_id: int,
-    medicine: MedicineCreate,
+    medicine: MedicineCreate, admin=Depends(verify_admin),
     db: Session = Depends(get_db)
 ):
     existing_medicine = db.query(Medicine).filter(Medicine.id == medicine_id).first()
@@ -322,8 +322,12 @@ def login_user(
 
 
     token = create_access_token(
-        data={"sub": existing_user.email}
-    )
+    data={
+        "sub": existing_user.email,
+        "role": existing_user.role
+    }
+)
+    
 
     return {
         "success": True,
