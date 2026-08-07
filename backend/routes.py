@@ -24,6 +24,10 @@ class MedicineCreate(BaseModel):
     price: str = Field(..., min_length=1)
     quantity: int
 
+class StockUpdate(BaseModel):
+    quantity: int = Field(..., gt=0)
+
+
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
     email: str = Field(..., min_length=5, max_length=100)
@@ -174,6 +178,37 @@ def update_medicine(
            "company": existing_medicine.company,
            "price": existing_medicine.price,
            "quantity": existing_medicine.quantity
+    }
+}
+
+@router.patch("/medicines/{medicine_id}/add-stock", response_model=ApiResponse)
+def add_stock(
+    medicine_id: int,
+    stock: StockUpdate, current_user=Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    medicine = db.query(Medicine).filter(
+    Medicine.id == medicine_id
+).first()
+    if medicine is None:
+       raise HTTPException(
+        status_code=404,
+        detail="Medicine not found"
+    )
+    medicine.quantity += stock.quantity
+    
+    db.commit()
+    db.refresh(medicine)
+
+    return {
+    "success": True,
+    "message": "Stock added successfully",
+    "data": {
+        "id": medicine.id,
+        "name": medicine.name,
+        "company": medicine.company,
+        "price": medicine.price,
+        "quantity": medicine.quantity
     }
 }
 
