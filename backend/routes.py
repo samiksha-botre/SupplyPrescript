@@ -274,6 +274,27 @@ def low_stock_medicines(
         "data": medicines
     }
 
+
+@router.get("/medicines/out-of-stock", response_model=MedicinesListResponse)
+def out_of_stock_medicines(
+    db: Session = Depends(get_db)
+):
+    medicines = db.query(Medicine).filter(
+        Medicine.quantity == 0
+    ).all()
+
+    if not medicines:
+        raise HTTPException(
+            status_code=404,
+            detail="No out of stock medicines found"
+        )
+
+    return {
+        "success": True,
+        "message": "Out of stock medicines fetched successfully",
+        "data": medicines
+    }
+
 @router.get("/medicines/search", response_model=MedicinesListResponse)
 def search_medicine(
     name: str,
