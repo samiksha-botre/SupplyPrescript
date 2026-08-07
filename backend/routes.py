@@ -196,13 +196,53 @@ def add_stock(
         detail="Medicine not found"
     )
     medicine.quantity += stock.quantity
-    
+
     db.commit()
     db.refresh(medicine)
 
     return {
     "success": True,
     "message": "Stock added successfully",
+    "data": {
+        "id": medicine.id,
+        "name": medicine.name,
+        "company": medicine.company,
+        "price": medicine.price,
+        "quantity": medicine.quantity
+    }
+}
+
+@router.patch("/medicines/{medicine_id}/remove-stock", response_model=ApiResponse)
+def remove_stock(
+    medicine_id: int,
+    stock: StockUpdate,
+    current_user=Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    
+
+    medicine = db.query(Medicine).filter(
+    Medicine.id == medicine_id
+).first()
+
+    if medicine is None:
+       raise HTTPException(
+        status_code=404,
+        detail="Medicine not found"
+    )
+    if medicine.quantity < stock.quantity:
+       raise HTTPException(
+        status_code=400,
+        detail="Not enough stock available"
+    )
+
+    medicine.quantity -= stock.quantity
+    db.commit()
+    db.refresh(medicine)
+
+    return {
+    "success": True,
+    "message": "Stock removed successfully",
     "data": {
         "id": medicine.id,
         "name": medicine.name,
