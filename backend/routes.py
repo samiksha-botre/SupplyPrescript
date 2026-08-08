@@ -420,6 +420,75 @@ def get_medicine_by_id(
 
     return medicine
 
+@router.get("/users", response_model=ApiResponse)
+def get_users(
+    admin=Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    users = db.query(User).all()
+
+    return {
+        "success": True,
+        "message": "Users fetched successfully",
+        "data": [
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role
+            }
+            for user in users
+        ]
+    }
+
+@router.get("/users/{user_id}", response_model=ApiResponse)
+def get_user_by_id(
+    user_id: int,
+    admin=Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "success": True,
+        "message": "User fetched successfully",
+        "data": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
+    }
+
+@router.delete("/users/{user_id}", response_model=ApiResponse)
+def delete_user(
+    user_id: int,
+    admin=Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    db.delete(user)
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "User deleted successfully",
+        "data": None
+    }
+
 @router.post("/register", response_model=ApiResponse)
 def register_user(
     user: UserCreate,
