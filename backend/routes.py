@@ -7,7 +7,7 @@ from .auth import create_access_token, verify_token, verify_admin
 
 from .database import SessionLocal
 from .models import Medicine, User
-from datetime import date
+from datetime import date, timedelta
 
 router = APIRouter()
 
@@ -380,6 +380,30 @@ def get_medicine_count(
         }    
     }
 
+@router.get("/medicines/expiring-soon", response_model=MedicinesListResponse)
+def get_expiring_soon_medicines(
+    days: int = 30,
+    db: Session = Depends(get_db)
+):
+    today = date.today()
+    expiry_limit = today + timedelta(days=days)
+
+    medicines = db.query(Medicine).filter(
+        Medicine.expiry_date >= today,
+        Medicine.expiry_date <= expiry_limit
+    ).all()
+
+    if not medicines:
+        raise HTTPException(
+            status_code=404,
+            detail="No medicines expiring soon"
+        )
+
+    return {
+        "success": True,
+        "message": "Medicines expiring soon fetched successfully",
+        "data": medicines
+    }
 
 @router.get("/medicines/{medicine_id}", response_model=MedicineResponse)
 def get_medicine_by_id(
@@ -504,3 +528,4 @@ def dashboard_stats(
             "total_medicines": total_medicines
         }
     }
+
