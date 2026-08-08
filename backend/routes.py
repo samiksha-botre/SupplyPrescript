@@ -7,6 +7,7 @@ from .auth import create_access_token, verify_token, verify_admin
 
 from .database import SessionLocal
 from .models import Medicine, User
+from datetime import date
 
 router = APIRouter()
 
@@ -23,6 +24,7 @@ class MedicineCreate(BaseModel):
     company: str = Field(..., min_length=2, max_length=100)
     price: str = Field(..., min_length=1)
     quantity: int
+    expiry_date: date
 
 class StockUpdate(BaseModel):
     quantity: int = Field(..., gt=0)
@@ -52,6 +54,7 @@ class MedicineResponse(BaseModel):
     company: str
     price: str
     quantity: int
+    expiry_date: date
 
     class Config:
         from_attributes = True
@@ -112,7 +115,8 @@ def create_medicine(medicine: MedicineCreate, admin=Depends(verify_admin), db: S
         name=medicine.name,
         company=medicine.company,
         price=medicine.price,
-        quantity=medicine.quantity
+        quantity=medicine.quantity,
+        expiry_date=medicine.expiry_date
     )
 
     db.add(new_medicine)
@@ -127,7 +131,8 @@ def create_medicine(medicine: MedicineCreate, admin=Depends(verify_admin), db: S
         "name": new_medicine.name,
         "company": new_medicine.company,
         "price": new_medicine.price,
-        "quantity": new_medicine.quantity
+        "quantity": new_medicine.quantity,
+        "expiry_date": new_medicine.expiry_date
     }
 }
 
@@ -165,6 +170,8 @@ def update_medicine(
     existing_medicine.company = medicine.company
     existing_medicine.price = medicine.price
     existing_medicine.quantity=medicine.quantity
+    existing_medicine.expiry_date=medicine.expiry_date
+
 
     db.commit()
     db.refresh(existing_medicine)
@@ -177,7 +184,8 @@ def update_medicine(
            "name": existing_medicine.name,
            "company": existing_medicine.company,
            "price": existing_medicine.price,
-           "quantity": existing_medicine.quantity
+           "quantity": existing_medicine.quantity,
+           "expiry_date": existing_medicine.expiry_date
     }
 }
 

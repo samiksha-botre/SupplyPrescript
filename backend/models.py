@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Date
 from .database import Base
 
 class Medicine(Base):
@@ -9,6 +9,7 @@ class Medicine(Base):
     company = Column(String(100))
     price = Column(String(20))
     quantity = Column(Integer, default=0)
+    expiry_date = Column(Date)
 
 class User(Base):
     __tablename__ = "users"
